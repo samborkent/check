@@ -10,10 +10,19 @@ func Nil[Type any](t *testing.T, got Type, descriptions ...string) bool {
 
 	desc := joinDescriptions(descriptions...)
 
-	if any(got) != nil || !reflect.ValueOf(got).IsNil() {
-		t.Errorf("%s%T: not nil: got '%+v'", desc, got, got)
-		return false
+	if any(got) == nil {
+		return true
 	}
 
-	return true
+	value := reflect.ValueOf(got)
+
+	switch value.Kind() {
+	case reflect.Chan, reflect.Func, reflect.Interface, reflect.Map, reflect.Ptr, reflect.Slice:
+		if value.IsNil() {
+			return true
+		}
+	}
+
+	t.Errorf("%s%s: not nil: got '%+v'", value.Type().String(), desc, got)
+	return false
 }
